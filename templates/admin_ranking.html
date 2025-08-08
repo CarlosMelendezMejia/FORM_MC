@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ranking de Factores</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+  <!-- Chart.js y librerías de captura -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+  <div class="container py-5">
+    <div id="rankingContent">
+      <div class="logo-container">
+        <div class="logo-img-container">
+          <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM">
+        </div>
+        <div class="logo-img-container">
+          <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES">
+        </div>
+        <div class="logo-img-container">
+          <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
+        </div>
+      </div>
+
+      <h3>Ranking Global de Factores</h3>
+
+      {% if pendientes %}
+      <div class="alert alert-warning" role="alert">
+        Faltan formularios por contestar; el ranking es parcial.
+      </div>
+      {% endif %}
+
+      {% if incompletas %}
+      <div class="alert alert-warning" role="alert">
+        Existen respuestas con ponderaciones incompletas (ID: {{ incompletas|join(', ') }}). Estas respuestas fueron excluidas del ranking.
+      </div>
+      {% endif %}
+
+      {% if estado_ranking %}
+      <div class="alert alert-info" role="alert">No hay ponderaciones registradas</div>
+      <div class="text-center mt-4">
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
+      </div>
+      {% else %}
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover text-center">
+          <thead>
+            <tr>
+              <th>Puesto</th>
+              <th>Factor</th>
+              <th>Total Ponderado</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in ranking %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td>{{ r.nombre }}</td>
+              <td>
+                {{ '%.2f' | format(r.total or 0) }}
+                {% if (r.total or 0) == 0 %}
+                <div class="text-danger">Faltan ponderaciones</div>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <p class="text-muted">Los factores con total 0 indican que faltan ponderaciones.</p>
+      </div>
+
+      <canvas id="rankingChart" class="mt-4"></canvas>
+
+      <div class="text-center mt-4">
+        <button id="downloadPNG" class="btn btn-primary me-2">
+          <i class="bi bi-download me-1"></i>Descargar como Imagen (PDF)
+        </button>
+        <a href="{{ url_for('panel_admin') }}" class="btn btn-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Volver al Panel
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if not estado_ranking %}
+  <script>
+    // Renderizar gráfico con datos desde Jinja
+    const factorLabels = {{ ranking | map(attribute='nombre') | list | tojson | safe }};
+    const factorTotals = {{ ranking | map(attribute='total') | list | tojson | safe }};
+
+    const ctx = document.getElementById('rankingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: factorLabels,
+        datasets: [{
+          label: 'Total Ponderado',
+          data: factorTotals,
+          backgroundColor: 'rgba(32, 133, 140, 0.5)',
+          borderColor: 'rgba(32, 133, 140, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Descargar como imagen dentro de PDF
+    document.getElementById('downloadPNG').addEventListener('click', () => {
+      const element = document.getElementById('rankingContent');
+      html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+        const pageWidth = 210;
+        const pageHeight = 297;
+        const imgProps = { width: canvas.width, height: canvas.height };
+        const ratio = imgProps.width / imgProps.height;
+        let imgWidth = pageWidth;
+        let imgHeight = pageWidth / ratio;
+
+        if (imgHeight > pageHeight) {
+          imgHeight = pageHeight;
+          imgWidth = pageHeight * ratio;
+        }
+
+        const x = (pageWidth - imgWidth) / 2;
+        const y = (pageHeight - imgHeight) / 2;
+
+        pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+        pdf.save('ranking_factores.pdf');
+      });
+    });
+  </script>
+  {% endif %}
+</body>
+</html>
