@@ -6,12 +6,13 @@ import time
 from dotenv import load_dotenv
 import bleach
 from flask_caching import Cache
+from werkzeug.security import check_password_hash
 
 load_dotenv()
 
 from db import get_connection
 
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+ADMIN_PASSWORD_HASH = os.getenv("ADMIN_PASSWORD_HASH")
 
 
 app = Flask(__name__)
@@ -293,8 +294,8 @@ def guardar_respuesta():
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
     if request.method == "POST":
-        password = request.form.get("password")
-        if password == ADMIN_PASSWORD:
+        password = request.form.get("password", "")
+        if ADMIN_PASSWORD_HASH and check_password_hash(ADMIN_PASSWORD_HASH, password):
             session["is_admin"] = True
             return redirect(url_for("panel_admin"))
         flash("Contraseña incorrecta.")
