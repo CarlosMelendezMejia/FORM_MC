@@ -22,9 +22,9 @@ CREATE TABLE asignacion (
     id INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
     id_formulario INT NOT NULL,
-    UNIQUE (id_usuario),
     FOREIGN KEY (id_usuario) REFERENCES usuario(id),
-    FOREIGN KEY (id_formulario) REFERENCES formulario(id)
+    FOREIGN KEY (id_formulario) REFERENCES formulario(id),
+    UNIQUE KEY idx_asignacion_usuario_formulario (id_usuario, id_formulario)
 );
 
 -- Tabla de factores (descripción fija para los 10 factores)
@@ -44,6 +44,10 @@ CREATE TABLE respuesta (
     FOREIGN KEY (id_formulario) REFERENCES formulario(id),
     UNIQUE (id_usuario, id_formulario)
 );
+
+-- Índice para facilitar consultas por formulario
+CREATE INDEX idx_respuesta_formulario
+    ON respuesta (id_formulario);
 
 -- Detalle de las respuestas por factor (valor de 1 a 10, sin repetir por respuesta)
 CREATE TABLE respuesta_detalle (
