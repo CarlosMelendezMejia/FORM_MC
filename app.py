@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import os
 import mysql.connector
 from decimal import Decimal, InvalidOperation
-import time
 from dotenv import load_dotenv
 import bleach
 from flask_caching import Cache
@@ -40,28 +39,24 @@ def invalidate_ranking_cache():
     cache.delete(RANKING_CACHE_KEY)
 
 
-# Cache sencillo para los factores
-FACTORES_CACHE = {"data": None, "timestamp": 0}
+# Cache para los factores
+FACTORES_CACHE_KEY = "factores_cache"
 FACTORES_CACHE_TTL = int(os.getenv("FACTORES_CACHE_TTL", 300))
 
 
 def get_factores():
     """Obtiene la lista de factores usando caché en memoria."""
-    now = time.time()
-    if (
-        FACTORES_CACHE["data"] is None
-        or now - FACTORES_CACHE["timestamp"] > FACTORES_CACHE_TTL
-    ):
+    factores = cache.get(FACTORES_CACHE_KEY)
+    if factores is None:
         g.cursor.execute("SELECT * FROM factor")
-        FACTORES_CACHE["data"] = g.cursor.fetchall()
-        FACTORES_CACHE["timestamp"] = now
-    return FACTORES_CACHE["data"]
+        factores = g.cursor.fetchall()
+        cache.set(FACTORES_CACHE_KEY, factores, timeout=FACTORES_CACHE_TTL)
+    return factores
 
 
 def invalidate_factores_cache():
     """Reinicia el caché de factores."""
-    FACTORES_CACHE["data"] = None
-    FACTORES_CACHE["timestamp"] = 0
+    cache.delete(FACTORES_CACHE_KEY)
 
 
 def get_db():
