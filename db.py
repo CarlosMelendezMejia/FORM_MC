@@ -1,5 +1,5 @@
 import os
-from mysql.connector import pooling
+from mysql.connector import Error, pooling
 
 # Pool de conexiones global. Se inicializa en :func:`init_pool`.
 _pool = None
@@ -40,7 +40,12 @@ def init_pool():
             password=password,
             database=database,
         )
-    except Exception:  # pragma: no cover - logging side effect
+    except RuntimeError as exc:  # pragma: no cover - logging side effect
+        from app import app
+
+        app.logger.error(str(exc))
+        raise SystemExit(1)
+    except Error:  # pragma: no cover - logging side effect
         from app import app
 
         app.logger.exception("Error al inicializar el pool de conexiones")
