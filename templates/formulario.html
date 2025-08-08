@@ -44,19 +44,6 @@
 <body class="login-background">
     <div class="container py-5">
         <div class="evaluation-card">
-            <!-- Espacio para los 3 logos -->
-            <div class="logo-container">
-                <div class="logo-img-container">
-                    <img src="{{ url_for('static', filename='img/logo_unam.png') }}" alt="Logo UNAM">
-                </div>
-                <div class="logo-img-container">
-                    <img src="{{ url_for('static', filename='img/logo_fes.png') }}" alt="Logo FES">
-                </div>
-                <div class="logo-img-container">
-                    <img src="{{ url_for('static', filename='img/logo_planeacion.png') }}" alt="Logo Planeación">
-                </div>
-            </div>
-            
             <h2>Formulario de Evaluación Multicriterio</h2>
 
             {% with messages = get_flashed_messages() %}
