@@ -10,6 +10,7 @@ Configura las siguientes variables de entorno antes de ejecutar la aplicación:
 - `DB_USER`: usuario de la base de datos.
 - `DB_PASSWORD`: contraseña del usuario.
 - `DB_NAME`: nombre de la base de datos.
+- `ADMIN_PASSWORD_HASH`: hash de la contraseña del administrador.
 
 Ejemplo en Linux/Mac:
 
@@ -18,6 +19,11 @@ export DB_HOST=localhost
 export DB_USER=root
 export DB_PASSWORD=tu_contraseña
 export DB_NAME=sistema_formularios
+export ADMIN_PASSWORD_HASH=$(python - <<'PY'
+from werkzeug.security import generate_password_hash
+print(generate_password_hash('tu_contraseña'))
+PY
+)
 ```
 
 Luego puedes iniciar la aplicación con:
