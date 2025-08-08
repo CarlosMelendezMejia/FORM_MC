@@ -9,29 +9,9 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-    <style>
-        body {
-            background: url("{{ url_for('static', filename='img/background.png') }}") no-repeat center center fixed;
-            background-size: cover;
-        }
-
-        .login-card {
-            background-color: white;
-            /* Fondo blanco */
-            border-radius: 10px;
-            /* Bordes redondeados para mejor apariencia */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* Sombra para mejor contraste */
-        }
-
-        .card-header {
-            background-color: #343a40;
-            /* Manteniendo el color oscuro del header */
-        }
-    </style>
 </head>
 
-<body>
+<body class="login-background">
     <div class="container py-5">
         <div class="login-card mx-auto">
             <div class="card-header">
